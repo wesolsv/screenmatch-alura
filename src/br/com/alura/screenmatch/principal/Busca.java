@@ -9,12 +9,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -30,14 +25,14 @@ public class Busca {
                 .setPrettyPrinting()
                 .create();
 
-        String endereco = "http://www.omdbapi.com/?t=" + busca.replaceAll(" ", "+") + "&apikey=";
-
         while (true) {
             System.out.println("Digite um filme para busca");
 
             busca = leitura.nextLine();
 
             if(busca.equalsIgnoreCase("sair")){break;}
+
+            String endereco = "http://www.omdbapi.com/?t=" + busca.replaceAll(" ", "+") + "&apikey=";
 
             String json = Requisicao.requisicao(endereco);
 
