@@ -1,43 +1,66 @@
 package br.com.alura.screenmatch.principal;
 
+import br.com.alura.screenmatch.excecao.ErroAnoException;
 import br.com.alura.screenmatch.modelos.Titulo;
 import br.com.alura.screenmatch.modelos.TituloOmdb;
+import br.com.alura.screenmatch.requisicao.Requisicao;
+import br.com.alura.screenmatch.util.CriarArquivoJson;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Busca {
     public static void main(String[] args) throws IOException, InterruptedException {
-        String apikey = "da8a0001";
 
         Scanner leitura = new Scanner(System.in);
-        System.out.println("Digite um filme para busca");
-        var busca = leitura.nextLine();
+        var busca = "";
+        List<Titulo> titulos = new ArrayList<>();
 
-        String endereco = "http://www.omdbapi.com/?t="+ busca + "&apikey="+apikey;
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
+                .setPrettyPrinting()
+                .create();
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endereco))
-                .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        String endereco = "http://www.omdbapi.com/?t=" + busca.replaceAll(" ", "+") + "&apikey=";
 
-        String json = response.body();
+        while (true) {
+            System.out.println("Digite um filme para busca");
 
-        System.out.println(json);
+            busca = leitura.nextLine();
 
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+            if(busca.equalsIgnoreCase("sair")){break;}
 
-        TituloOmdb tituloOmdb = gson.fromJson(json, TituloOmdb.class);
-        System.out.println(tituloOmdb);
-        Titulo titulo = new Titulo(tituloOmdb);
-        System.out.println(titulo);
+            String json = Requisicao.requisicao(endereco);
+
+            System.out.println(json);
+
+            TituloOmdb tituloOmdb = gson.fromJson(json, TituloOmdb.class);
+
+            System.out.println(tituloOmdb);
+
+            try {
+                Titulo titulo = new Titulo(tituloOmdb);
+
+                titulos.add(titulo);
+
+            } catch (NumberFormatException e) {
+                System.out.println(e.getMessage());
+            } catch (ErroAnoException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        CriarArquivoJson.criarArquivo(gson.toJson(titulos));
+
+        System.out.println("finalizou corretamente");
     }
 }
